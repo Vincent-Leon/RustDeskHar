@@ -427,4 +427,6 @@ export declare function sessionTakeRgbaFrame(sessionId: string, display: number)
 
 export declare function sessionToggleOption(sessionId: string, arg: string): void
 
+export declare function sessionTogglePrivacyMode(sessionId: string, implKey: string, on: boolean): void
+
 export declare function transferNextJobId(): number

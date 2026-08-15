@@ -852,6 +852,10 @@ export function sessionToggleOption(sessionId: string, arg: string): void {
   native.sessionToggleOption(sessionId, arg);
 }
 
+export function sessionTogglePrivacyMode(sessionId: string, implKey: string, on: boolean): void {
+  native.sessionTogglePrivacyMode(sessionId, implKey, on);
+}
+
 export function transferNextJobId(): number {
   return native.transferNextJobId();
 }
