@@ -4746,6 +4746,19 @@ pub fn session_get_toggle_option(session_id: String, option: String) -> bool {
         .unwrap_or(false)
 }
 
+/// Toggle privacy mode on the remote peer.
+///
+/// Peers that advertise `supported_privacy_mode_impl` in their platform additions
+/// (Windows and macOS) ignore the legacy `session_toggle_option("privacy-mode")`
+/// path and only honour this implementation-scoped message, so the ArkTS client
+/// needs a dedicated entry point to reach them.
+#[napi]
+pub fn session_toggle_privacy_mode(session_id: String, impl_key: String, on: bool) {
+    if let Some(core_session_id) = core_session_id_for(&session_id) {
+        flutter_ffi::session_toggle_privacy_mode(core_session_id, impl_key, on);
+    }
+}
+
 #[napi]
 pub fn session_toggle_option(session_id: String, option: String) {
     let _ = update_session(&session_id, "session_toggle_option", |session| {
