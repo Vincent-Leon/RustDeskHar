@@ -4820,6 +4820,21 @@ pub fn session_alternative_codecs(session_id: String) -> String {
         .unwrap_or_default()
 }
 
+/// Mirrors `LoginConfigHandler::should_auto_login`: Core types the saved OS password
+/// itself when the peer has an OS password, auto-login and lock-after-session-end.
+fn core_will_auto_login(core_session_id: &flutter_ffi::SessionID) -> bool {
+    let option = |name: &str| {
+        flutter_ffi::session_get_option(core_session_id.clone(), name.to_string())
+            .unwrap_or_default()
+    };
+    let lock_after_session_end = flutter_ffi::session_get_toggle_option(
+        core_session_id.clone(),
+        "lock-after-session-end".to_string(),
+    )
+    .unwrap_or(false);
+    lock_after_session_end && !option("auto-login").is_empty() && !option("os-password").is_empty()
+}
+
 #[napi]
 pub fn session_on_waiting_for_image_dialog_show(session_id: String) -> String {
     update_session(
@@ -4832,8 +4847,12 @@ pub fn session_on_waiting_for_image_dialog_show(session_id: String) -> String {
             let Some(core_session_id) = parse_core_session_id(session) else {
                 return (false, "Missing core session id".to_string());
             };
-            let should_activate_remote_input =
-                !session.view_only && session.conn_type == "default_conn";
+            let should_activate_remote_input = !session.view_only
+                && session.conn_type == "default_conn"
+                // Core's own auto-login activates the login screen and types the saved
+                // password 1.2 s later. A second activation would land inside that wait
+                // and can move focus away from the password field.
+                && !core_will_auto_login(&core_session_id);
             let activation_session_id = core_session_id.clone();
             flutter_ffi::session_on_waiting_for_image_dialog_show(core_session_id);
             if should_activate_remote_input {
